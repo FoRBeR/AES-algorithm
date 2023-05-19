@@ -135,6 +135,7 @@ Stores mutable variables:
 + `count_of_rounds`: this variable indicates the number of encryption rounds
 + `input_key`: tuple of 16 bytes, is the key
 + `input_block`: tuple of 16 bytes, input block
++ `details`: whether to output details to a separate .txt file. (Keys of the rounds)
 ### const.py
 Stores constants:
 + `s_box`: table for the `SubBytes()` function, used in encryption
