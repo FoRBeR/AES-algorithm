@@ -3,11 +3,11 @@ This is an implementation of the AES-128 algorithm that encrypts one block of da
 The project consists of 5 scripts.
 ## Description of the algorithm.
 This is a block algorithm, it consists of 4 main functions:
-1. SubBytes()
-2. ShiftRows()
-3. MixColumns()
-4. AddRoundKey()
-### SubBytes()
+1. `SubBytes()`
+2. `ShiftRows()`
+3. `MixColumns()`
+4. `AddRoundKey()`
+### `SubBytes()`
 Performs a byte replacement on the s_box table.
 Encryption table:
 |      |  0   |  1   |  2   |  3   |  4   |  5   | 6    |  7   |  8   |  9   |  A   |  B   |  C   |  D   |  E   |  F   |
@@ -49,7 +49,7 @@ Decryption table:
 |  E   | 0xa0 | 0xe0 | 0x3b | 0x4d | 0xae | 0x2a | 0xf5 | 0xb0 | 0xc8 | 0xeb | 0xbb | 0x3c | 0x83 | 0x53 | 0x99 | 0x61 |
 |  F   | 0x17 | 0x2b | 0x04 | 0x7e | 0xba | 0x77 | 0xd6 | 0x26 | 0xe1 | 0x69 | 0x14 | 0x63 | 0x55 | 0x21 | 0x0c | 0x7d |
 
-### ShiftRows()
+### `ShiftRows()`
 This function shifts rows by a number of places equal to the row number in the matrix.
 
 |     |  0  |  1  |  2  |  3  |
@@ -66,7 +66,7 @@ This function shifts rows by a number of places equal to the row number in the m
 |  2  | C   | D   | A   | B   |
 |  3  | D   | A   | B   | C   |
 
-### MixColumns()
+### `MixColumns()`
 This function works with columns, the field GF(2^8) is used.
 Each column is multiplied by a matrix.
 
@@ -108,29 +108,49 @@ n*{0d} = n*{02}\*{02}\*{02} + n*{02}\*{02} + n*{01}
 
 n*{0е} = n*{02}\*{02}\*{02} + n*{02}\*{02} + b*{02}
 
-### AddRoundKey()
+### `AddRoundKey()`
 The transformation performs a bitwise XOR of the block and round key columns.
 
 ## Description of the key generation algorithm.
 
-Процесс:
-1. Первые четыре слова ( W0,W1,W2,W3 ) получены из ключа шифра. Ключ шифра
-представлен как массив из 16 байтов ( k0 до k15 ). Первые четыре байта ( k0 до k3 ) становятся
-W0; следующие четыре байта ( k4 до k7 ) становятся W1 ; и так далее. Другими словами,
-последовательное соединение (конкатенация) слов в этой группе копирует ключ шифра.
-2. Остальная часть слов (Wi ) от i = 4 – 43 получается следующим образом:
-a. Если (i mod 4) != 0, то Wi = Wi-1 XOR Wi-4
-b. Если (i mod 4) = 0, то Wi = t XOR Wi-4
-Где t - временное слово, которое считается как SubWord(Rotword(Wi-1)) XOR RCon(i//4)
+Process:
+1. The first four words (W0, W1, W2, W3) are derived from the cipher key. The cipher key is represented as an array of 16 bytes (k0 to k15). The first four bytes (k0 to k3) become W0, the next four bytes (k4 to k7) become W1, and so on. In other words, the serial connection (concatenation) of the words in this group copies the cipher key.
+2. The rest of the words (Wi), where i = 4 - 43, is obtained as follows:
 
-RotWord (rotate word) — процедура, подобная преобразованию ShiftRows, но применяется
-только к одной строке. Процедура принимает слово как массив из четырех байт и сдвигает
-каждый байт влево с конвертированием.
-SubWord (substitute word) — процедура, подобная преобразованию SubBytes, но
-применяется только к одной строке. Процедура принимает каждый байт в слове и заменяет
-его другим.
-RoundConstants. Каждая константа раунда Rcon — это 4 -байтовое значение, в котором
-самые правые три байта являются всегда нулевыми.
+a. `If (i mod 4) != 0`, then `Wi = W(i-1) XOR W(i-4)`
+
+b. `If (i mod 4) = 0` then `Wi = t XOR W(i-4)`
+
+Where `t` is a temporary word which counts as `SubWord(Rotword(Wi-1)) XOR RCon(i//4)`
+
+`RotWord (rotate word)` is a procedure similar to the ShiftRows transformation, but only applies to one row. The procedure takes a word as an array of four bytes and shifts each byte to the left with a conversion.
+
+`SubWord (substitute word)` is a procedure similar to SubBytes conversion, but only applies to one string. The procedure takes each byte in a word and replaces it with another.
+
+`Round Constants` Each Rcon round constant is a 4-byte value in which the rightmost three bytes are always zero.
+
+## Description of scripts.
+### input.py
+Stores mutable variables:
+1) count_of_rounds: this variable indicates the number of encryption rounds
+2) input_key: tuple of 16 bytes, is the key
+3) input_block: tuple of 16 bytes, input block
+### const.py
+Stores constants:
+1) s_box: table for the SubBytes() function, used in encryption
+2) inv_s_box: the table for the SubBytes() function is used in decryption
+3) rcon: table for generating keys
+4) columns_mat: table for MixColumns(), used in encryption
+5) inv_columns_mat: the table for MixColumns() is used in decryption
+### gf.py
+
+
+
+
+
+
+
+
 
 
 
