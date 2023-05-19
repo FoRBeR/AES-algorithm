@@ -1,6 +1,7 @@
 import numpy as np
 
 count_of_rounds = 10
+details = True  # Нужен ли файл с описанием всех ключей
 
 # Входной ключ
 input_key = (0x2B, 0x7E, 0x15, 0x16,

@@ -1,6 +1,6 @@
 import numpy as np
 from gf import *
-from input import input_block, count_of_rounds
+from input import input_block, count_of_rounds, details
 from key_schedule import key
 from const import s_box, columns_mat, inv_s_box, inv_columns_mat
 
@@ -54,15 +54,19 @@ def add_round_key(block: np.ndarray, round_key: np.ndarray) -> np.ndarray:
 
 
 def block_encrypt(block: np.ndarray) -> np.ndarray:
+    if details: file.write('Начало шифрования\n')
     # INITIAL ROUND
+    if details: file.write('Предварительный раунд, ключ:\n' + str(key[0:4].T) + '\n\n')
     block = add_round_key(block, key[0:4].T)
     # ROUNDS 1 - PENULTIMATE
     for round_num in range(1, count_of_rounds):
+        if details: file.write(f'Раунд {round_num}, ключ:\n' + str(key[4 * round_num:4 * round_num + 4].T) + '\n\n')
         block = sub_bytes(block)
         block = shift_rows(block)
         block = mix_columns(block)
         block = add_round_key(block, key[4 * round_num:4 * round_num + 4].T)
     # LAST ROUND
+    if details: file.write('Последний раунд, ключ:\n' + str(key[40:44].T) + '\n\n')
     block = sub_bytes(block)
     block = shift_rows(block)
     block = add_round_key(block, key[40:44].T)
@@ -70,15 +74,19 @@ def block_encrypt(block: np.ndarray) -> np.ndarray:
 
 
 def block_decrypt(block: np.ndarray) -> np.ndarray:
+    if details: file.write('Начало дешифрования\n')
     # LAST ROUND
+    if details: file.write('Последний раунд, ключ:\n' + str(key[40:44].T) + '\n\n')
     block = add_round_key(block, key[40:44].T)
     # ROUNDS PENULTIMATE - 1
     for round_num in range(count_of_rounds - 1, 0, -1):
+        if details: file.write(f'Раунд {round_num}, ключ:\n' + str(key[4 * round_num:4 * round_num + 4].T) + '\n\n')
         block = shift_rows(block, True)
         block = sub_bytes(block, True)
         block = add_round_key(block, key[4 * round_num:4 * round_num + 4].T)
         block = mix_columns(block, True)
     # 0 ROUND
+    if details: file.write('Нулевой раунд, ключ:\n' + str(key[0:4].T) + '\n\n')
     block = shift_rows(block, True)
     block = sub_bytes(block, True)
     block = add_round_key(block, key[0:4].T)
@@ -86,6 +94,16 @@ def block_decrypt(block: np.ndarray) -> np.ndarray:
 
 
 if __name__ == '__main__':
-    print(input_block, end='\n\n')
-    print(block_encrypt(input_block), end='\n\n')
-    print(block_decrypt(block_encrypt(input_block)), end='\n\n')
+    if details:
+        file = open('details.txt', 'w')
+        file.write('Входной блок:\n' + str(input_block) + '\n\n\n')
+
+    print('INPUT:\n', input_block, end='\n\n')
+    encr_block = block_encrypt(input_block)
+    if details: file.write('Зашифрованный блок:\n' + str(encr_block) + '\n\n\n')
+    print('ENCRYPTED:\n', encr_block, end='\n\n')
+    decr_block = block_decrypt(encr_block)
+    print('DECRYPTED:\n', decr_block, end='\n\n')
+    if details:
+        file.write('Расшированный блок:\n' + str(decr_block) + '\n\n\n')
+        file.close()
