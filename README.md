@@ -86,7 +86,7 @@ Decryption matrix
 |  2  |0d   |09   |0e   |0b   |
 |  3  |0b   |0d   |09   |0e   |
 
-New addition and multiplication rules:
+##### New addition and multiplication rules:
 
 a) Addition in field GF(2^8) is equivalent to XOR operation.
 
@@ -96,7 +96,7 @@ c) Multiplication by {02} is performed according to the rule: if the multiplied 
 
 d) Multiplication by other constants can be expressed in terms of the previous.
 
-Transformations:
+##### Transformations:
 
 n*{03} = n*{02} + n*{01}
 
@@ -132,26 +132,112 @@ Where `t` is a temporary word which counts as `SubWord(Rotword(Wi-1)) XOR RCon(i
 ## Description of scripts.
 ### input.py
 Stores mutable variables:
-1) count_of_rounds: this variable indicates the number of encryption rounds
-2) input_key: tuple of 16 bytes, is the key
-3) input_block: tuple of 16 bytes, input block
++ `count_of_rounds`: this variable indicates the number of encryption rounds
++ `input_key`: tuple of 16 bytes, is the key
++ `input_block`: tuple of 16 bytes, input block
 ### const.py
 Stores constants:
-1) s_box: table for the SubBytes() function, used in encryption
-2) inv_s_box: the table for the SubBytes() function is used in decryption
-3) rcon: table for generating keys
-4) columns_mat: table for MixColumns(), used in encryption
-5) inv_columns_mat: the table for MixColumns() is used in decryption
++ `s_box`: table for the `SubBytes()` function, used in encryption
++ `inv_s_box`: the table for the `SubBytes()` function is used in decryption
++ `rcon`: table for generating keys
++ `columns_mat`: table for `MixColumns()`, used in encryption
++ `inv_columns_mat`: the table for `MixColumns()` is used in decryption
 ### gf.py
+The functions in the GF(2^8) field are separated into a separate file.
+List:
++ `mul02`: multiply by 02
++ `mul03`: multiply by 03
++ `mul09`: multiply by 09
++ `mul0b`: multiply by 0b
++ `mul0d`: multiply by 0d
++ `mul0e`: multiply by 0e
+The transformations used for these functions are given above.
+### key_schedule.py
+Key generation is separated into this script, the only variable received is `key`, which is the extended key.
+### main.py
+Main script. Encryption and decryption are broken down into functions for convenience.
 
+Function description:
+#### `sub_bytes(block: np.ndarray, inv=False) -> np.ndarray`
+This is an implementation of the `SubBytes` function.
 
+Accepts the block as a NumPy 4\*4 matrix and a boolean variable `inv`, which defaults to `False`.
 
+The function works for both encryption and decryption, which is determined by the `inv` argument. When `inv = True`, decryption occurs, encryption occurs by default.
 
+The function uses `s_box` and `inv_s_box` and returns a NumPy array.
 
+#### `shift_rows(block: np.ndarray, inv=False) -> np.ndarray`
+This is an implementation of the `ShiftRows` function.
 
+Accepts the block as a NumPy 4\*4 matrix and a boolean variable `inv`, which defaults to `False`.
 
+The function works for both encryption and decryption, which is determined by the `inv` argument. When `inv = True`, decryption occurs, encryption occurs by default.
 
+The function implements shift, returns a NumPy array.
 
+#### `mix_columns(block: np.ndarray, inv=False) -> np.ndarray`
+This is the implementation of the `MixColumns` function.
 
+Accepts the block as a NumPy 4\*4 matrix and a boolean variable `inv`, which defaults to `False`.
 
+The function works for both encryption and decryption, which is determined by the `inv` argument. When `inv = True`, decryption occurs, encryption occurs by default.
 
+The function implements multiplication in the field GF(2^8), returns a NumPy array.
+
+#### `add_round_key(block: np.ndarray, round_key: np.ndarray) -> np.ndarray`
+This is the implementation of the `AddRoundKey` function.
+
+Takes a block as a NumPy 4\*4 matrix and a round key.
+
+The function is symmetrical for encryption/decryption.
+
+It implements XOR of key and block, returns a NumPy array.
+
+#### `block_encrypt(block: np.ndarray) -> np.ndarray`
+Encryption function.
+
+Works in this order:
+1) initial round
+
+     a. `AddRoundKey()` *--zero round key*
+2) rounds 1 - penultimate
+
+     a. `SubBytes()`
+     
+     b. `ShiftRows()`
+     
+     c. `MixColumns()`
+     
+     d. `AddRoundKey()`
+3) last round
+
+     a. `SubBytes()`
+     
+     b. `ShiftRows()`
+     
+     c. `AddRoundKey()` *--last round key*
+
+#### `block_decrypt(block: np.ndarray) -> np.ndarray`
+Decryption function.
+
+Works in this order:
+1) last round
+
+     a. `AddRoundKey()` *--last round key*
+2) rounds penultimate - 1
+
+     a. `ShiftRows()`
+     
+     b. `SubBytes()`
+     
+     c. `AddRoundKey()`
+     
+     d. `MixColumns()`
+3) 0 round
+
+     a. `ShiftRows()`
+     
+     b. `SubBytes()`
+     
+     c. `AddRoundKey()` *--zero round key*
